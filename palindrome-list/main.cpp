@@ -2,8 +2,9 @@
 // Created by kobi on 9/12/20.
 // https://leetcode.com/problems/palindrome-linked-list/
 
-#include <iostream>
+#include <cassert>
 #include <iomanip>
+#include <iostream>
 
 /**
  * Definition for singly-linked list.
@@ -46,7 +47,8 @@ public:
         head = head->next;
       }
     }
-    std::clog << "middle phase: head " << head->val << " prev " << prev->val << '\n';
+    auto *middle = head;
+    std::clog << "middle phase: head " << middle->val << " prev " << prev->val << '\n';
     // flip
     while(head->next) {
       auto* next = head->next;
@@ -56,29 +58,85 @@ public:
     }
     head->next = prev;
 
-    std::clog << "head " << head->val << " next " << head->next->val << '\n';
+    std::clog << "head " << head->val << " next " << head->next->val << " prev " << prev->val << '\n';
 
     // go from 2 directions
     auto* fwd = orig;
     auto* back = head;
+    bool success = true;
     while(fwd != back) {
-      if (fwd->val != back->val) return false;
+      if (fwd->val != back->val) {
+        success = false;
+        break;
+      }
+      if (fwd->next == back) break;
       fwd = fwd->next;
       back = back->next;
     }
 
     // leetcode is allocating on the heap and need to re-do the whole flipping
+    auto* end = head;
+    if (head->next == middle) {
+      middle->next = head;
+    } else {
+      while (head->next != middle) {
+        auto *next = prev->next;
+        prev->next = head;
+        head = prev;
+        prev = next;
+      }
+    }
+    end->next = nullptr;
 
-
-    return true;
+    return success;
   }
 };
 
 int main() {
-  ListNode l1(1), l2(2), l3(3), l4(2), l5(1);
-  l1.next = &l2;
-  l2.next = &l3;
-  l3.next = &l4;
-  l4.next = &l5;
-  std::clog << std::boolalpha << Solution::isPalindrome(&l1) << '\n';
+  {
+    ListNode l1(1), l2(2), l3(3), l4(2), l5(1);
+    l1.next = &l2;
+    l2.next = &l3;
+    l3.next = &l4;
+    l4.next = &l5;
+    const auto sol = Solution::isPalindrome(&l1);
+    std::clog << std::boolalpha << sol << '\n';
+    std::clog << l1.val << ',' << l1.next->val << ',' << l1.next->next->val
+              << ',' << l1.next->next->next->val << ','
+              << l1.next->next->next->next->val << '\n';
+    assert(l1.next->next->next->next->next == nullptr);
+    assert(sol);
+  }
+
+  {
+    ListNode l1(1), l2(2);
+    l1.next = &l2;
+    const auto sol = Solution::isPalindrome(&l1);
+    std::clog << std::boolalpha << sol << '\n';
+    std::clog << l1.val << ',' << l1.next->val << '\n';
+    assert(l1.next->next == nullptr);
+    assert(!sol);
+  }
+
+  {
+    ListNode l1(0), l2(0);
+    l1.next = &l2;
+    const auto sol = Solution::isPalindrome(&l1);
+    std::clog << std::boolalpha << sol << '\n';
+    std::clog << l1.val << ',' << l1.next->val << '\n';
+    assert(l1.next->next == nullptr);
+    assert(sol);
+  }
+
+  {
+    ListNode l1(1), l2(0), l3(0);
+    l1.next = &l2;
+    l2.next = &l3;
+    const auto sol = Solution::isPalindrome(&l1);
+    std::clog << std::boolalpha << sol << '\n';
+    std::clog << l1.val << ',' << l1.next->val << '\n';
+    assert(l1.next->next->next == nullptr);
+    assert(!sol);
+  }
+
 }
