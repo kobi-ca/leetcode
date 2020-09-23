@@ -64,26 +64,25 @@ class Solution {
 public:
   static bool isPalindrome(ListNode* head) {
     if (!head) return true;
-    auto *orig = head;
     const auto isend([](auto iter){ return iter != nullptr; });
     auto cnt = count_until(head, 0, isend);
     std::clog << "count " << cnt << '\n';
     // go to middle and flip the "next"
 
     auto ismiddle([cnt, i=0] () mutable { return i++< cnt/2; });
-    auto [prev, middle] = find_if(head, ismiddle);
+    auto [prev_middle, middle] = find_if(head, ismiddle);
 
-    std::clog << "middle phase: head " << middle->val << " prev " << prev->val << '\n';
+    std::clog << "middle phase: head " << middle->val << " prev " << prev_middle->val << '\n';
 
-    auto flip([middle = middle, prev = prev] () mutable {
+    auto flip([middle = middle, prev_middle = prev_middle] () mutable {
         while(middle->next) {
             auto* next = middle->next;
-            middle->next = prev;
-            prev = middle;
+            middle->next = prev_middle;
+            prev_middle = middle;
             middle = next;
         }
-        middle->next = prev;
-        return std::make_tuple(prev, middle);
+        middle->next = prev_middle;
+        return std::make_tuple(prev_middle, middle);
     });
     auto [prev_end, end_flipped] = flip();
 
@@ -92,20 +91,22 @@ public:
                 end_flipped->next->val << " prev " << prev_end->val << '\n';
 
     // go from 2 directions
-    auto* fwd = orig;
+    auto* fwd = head;
     auto* back = end_flipped;
     bool success = equal(fwd, back);
 
-    auto* end = end_flipped;
-    while(prev_end != middle) {
-      auto *next = prev_end->next;
-      prev_end->next = end_flipped;
-      end_flipped = prev_end;
-      prev_end = next;
-    }
-    middle->next = end_flipped;
-    end->next = nullptr;
-
+    auto flip_back([prev_end = prev_end, middle = middle,
+                    end_flipped = end_flipped] () mutable {
+        while (prev_end != middle) {
+            auto *next = prev_end->next;
+            prev_end->next = end_flipped;
+            end_flipped = prev_end;
+            prev_end = next;
+        }
+        middle->next = end_flipped;
+    });
+    flip_back();
+    end_flipped->next = nullptr;
     return success;
   }
 };
