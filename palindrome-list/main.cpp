@@ -91,9 +91,7 @@ public:
                 end_flipped->next->val << " prev " << prev_end->val << '\n';
 
     // go from 2 directions
-    auto* fwd = head;
-    auto* back = end_flipped;
-    bool success = equal(fwd, back);
+    bool success = equal(head, end_flipped);
 
     auto flip_back([prev_end = prev_end, middle = middle,
                     end_flipped = end_flipped] () mutable {
