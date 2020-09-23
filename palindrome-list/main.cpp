@@ -88,25 +88,22 @@ public:
     auto [prev_end, end_flipped] = flip();
 
     // flip
-    std::clog << "middle " << end_flipped->val << " next " << end_flipped->next->val << " prev " << prev_end->val << '\n';
+    std::clog << "middle " << end_flipped->val << " next " <<
+                end_flipped->next->val << " prev " << prev_end->val << '\n';
 
     // go from 2 directions
     auto* fwd = orig;
     auto* back = end_flipped;
     bool success = equal(fwd, back);
 
-    // leetcode is allocating on the heap and need to re-do the whole flipping
     auto* end = end_flipped;
-    if (head->next == middle) {
-      middle->next = end_flipped;
-    } else {
-      while (head->next != middle) {
-        auto *next = end_flipped->next;
-        end_flipped->next = head;
-        head = end_flipped;
-        end_flipped = next;
-      }
+    while(prev_end != middle) {
+      auto *next = prev_end->next;
+      prev_end->next = end_flipped;
+      end_flipped = prev_end;
+      prev_end = next;
     }
+    middle->next = end_flipped;
     end->next = nullptr;
 
     return success;
