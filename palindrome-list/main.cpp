@@ -25,44 +25,59 @@ struct ListNode final {
   ListNode(int x, ListNode *next) : val(x), next(next) {}
 };
 
+ListNode* advance(ListNode* ln) {
+    return ln ? ln->next : nullptr;
+}
+
+template <typename T, typename ITER, typename PRED>
+T count_until(ITER iter, T init, PRED pred) {
+    T count{init};
+    for (;pred(iter); iter = advance(iter)) { ++count; }
+    return count;
+}
+
+template <typename ITER, typename PRED>
+std::tuple<ITER, ITER> find_if(ITER iter, PRED pred) {
+    auto prev = iter;
+    for (;pred(); iter = advance(iter)) {
+        prev = iter;
+    }
+    return std::make_tuple(prev, iter);
+}
+
 class Solution {
 public:
   static bool isPalindrome(ListNode* head) {
     if (!head) return true;
-    auto* orig = head;
-    auto cnt = 1UL;
-    // find total O(N)
-    while(head) {
-      if (!head->next) break;
-      head = head->next;
-      ++cnt;
-    }
+    auto *orig = head;
+    const auto isend([](auto iter){ return iter != nullptr; });
+    auto cnt = count_until(head, 0, isend);
     std::clog << "count " << cnt << '\n';
     // go to middle and flip the "next"
-    head = orig;
-    auto* prev = head;
-    for(auto i = 0UL; i < cnt/2 ; ++i) {
-      if (head->next) {
-        prev = head;
-        head = head->next;
-      }
-    }
-    auto *middle = head;
-    std::clog << "middle phase: head " << middle->val << " prev " << prev->val << '\n';
-    // flip
-    while(head->next) {
-      auto* next = head->next;
-      head->next = prev;
-      prev = head;
-      head = next;
-    }
-    head->next = prev;
 
-    std::clog << "head " << head->val << " next " << head->next->val << " prev " << prev->val << '\n';
+    auto ismiddle([cnt, i=0] () mutable { return i++< cnt/2; });
+    auto [prev, middle] = find_if(head, ismiddle);
+
+    std::clog << "middle phase: head " << middle->val << " prev " << prev->val << '\n';
+
+    auto flip([middle = middle, prev = prev] () mutable {
+        while(middle->next) {
+            auto* next = middle->next;
+            middle->next = prev;
+            prev = middle;
+            middle = next;
+        }
+        middle->next = prev;
+        return std::make_tuple(prev, middle);
+    });
+    auto [prev_end, end_flipped] = flip();
+
+    // flip
+    std::clog << "middle " << end_flipped->val << " next " << end_flipped->next->val << " prev " << prev_end->val << '\n';
 
     // go from 2 directions
     auto* fwd = orig;
-    auto* back = head;
+    auto* back = end_flipped;
     bool success = true;
     while(fwd != back) {
       if (fwd->val != back->val) {
@@ -75,15 +90,15 @@ public:
     }
 
     // leetcode is allocating on the heap and need to re-do the whole flipping
-    auto* end = head;
+    auto* end = end_flipped;
     if (head->next == middle) {
-      middle->next = head;
+      middle->next = end_flipped;
     } else {
       while (head->next != middle) {
-        auto *next = prev->next;
-        prev->next = head;
-        head = prev;
-        prev = next;
+        auto *next = end_flipped->next;
+        end_flipped->next = head;
+        head = end_flipped;
+        end_flipped = next;
       }
     }
     end->next = nullptr;
@@ -104,6 +119,7 @@ int main() {
     std::clog << l1.val << ',' << l1.next->val << ',' << l1.next->next->val
               << ',' << l1.next->next->next->val << ','
               << l1.next->next->next->next->val << '\n';
+    std::clog << std::endl;
     assert(l1.next->next->next->next->next == nullptr);
     assert(sol);
   }
