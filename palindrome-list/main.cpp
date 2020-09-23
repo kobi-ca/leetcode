@@ -45,6 +45,21 @@ std::tuple<ITER, ITER> find_if(ITER iter, PRED pred) {
     return std::make_tuple(prev, iter);
 }
 
+template <typename ITER>
+bool equal(ITER iter1, ITER iter2) {
+    bool success = true;
+    while(iter1 != iter2) {
+        if (iter1->val != iter2->val) {
+            success = false;
+            break;
+        }
+        if (iter1->next == iter2) break;
+        iter1 = iter1->next;
+        iter2 = iter2->next;
+    }
+    return success;
+}
+
 class Solution {
 public:
   static bool isPalindrome(ListNode* head) {
@@ -78,16 +93,7 @@ public:
     // go from 2 directions
     auto* fwd = orig;
     auto* back = end_flipped;
-    bool success = true;
-    while(fwd != back) {
-      if (fwd->val != back->val) {
-        success = false;
-        break;
-      }
-      if (fwd->next == back) break;
-      fwd = fwd->next;
-      back = back->next;
-    }
+    bool success = equal(fwd, back);
 
     // leetcode is allocating on the heap and need to re-do the whole flipping
     auto* end = end_flipped;
