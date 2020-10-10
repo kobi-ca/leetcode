@@ -60,6 +60,27 @@ bool equal(ITER iter1, ITER iter2) {
     return success;
 }
 
+std::tuple<ListNode*, ListNode*> flip(ListNode* middle , ListNode* prev_middle) {
+    while(middle->next) {
+        auto* next = middle->next;
+        middle->next = prev_middle;
+        prev_middle = middle;
+        middle = next;
+    }
+    middle->next = prev_middle;
+    return std::make_tuple(prev_middle, middle);
+}
+
+void flip_back(ListNode* prev_end, ListNode* middle, ListNode* end_flipped) {
+    while (prev_end != middle) {
+        auto *next = prev_end->next;
+        prev_end->next = end_flipped;
+        end_flipped = prev_end;
+        prev_end = next;
+    }
+    middle->next = end_flipped;
+}
+
 class Solution {
 public:
   static bool isPalindrome(ListNode* head) {
@@ -74,17 +95,7 @@ public:
 
     std::clog << "middle phase: head " << middle->val << " prev " << prev_middle->val << '\n';
 
-    auto flip([middle = middle, prev_middle = prev_middle] () mutable {
-        while(middle->next) {
-            auto* next = middle->next;
-            middle->next = prev_middle;
-            prev_middle = middle;
-            middle = next;
-        }
-        middle->next = prev_middle;
-        return std::make_tuple(prev_middle, middle);
-    });
-    auto [prev_end, end_flipped] = flip();
+    auto [prev_end, end_flipped] = flip(middle, prev_middle);
 
     // flip
     std::clog << "middle " << end_flipped->val << " next " <<
@@ -93,17 +104,7 @@ public:
     // go from 2 directions
     bool success = equal(head, end_flipped);
 
-    auto flip_back([prev_end = prev_end, middle = middle,
-                    end_flipped = end_flipped] () mutable {
-        while (prev_end != middle) {
-            auto *next = prev_end->next;
-            prev_end->next = end_flipped;
-            end_flipped = prev_end;
-            prev_end = next;
-        }
-        middle->next = end_flipped;
-    });
-    flip_back();
+    flip_back(prev_end, middle, end_flipped);
     end_flipped->next = nullptr;
     return success;
   }
