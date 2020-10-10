@@ -36,10 +36,10 @@ T count_until(ITER iter, T init, PRED pred) {
     return count;
 }
 
-template <typename ITER, typename PRED>
-std::tuple<ITER, ITER> find_if(ITER iter, PRED pred) {
+template <typename ITER>
+std::tuple<ITER, ITER> find_middle(ITER iter, int cnt) {
     auto prev = iter;
-    for (;pred(); iter = advance(iter)) {
+    for (int i = 0; i++ < cnt / 2; iter = advance(iter)) {
         prev = iter;
     }
     return std::make_tuple(prev, iter);
@@ -89,9 +89,7 @@ public:
     auto cnt = count_until(head, 0, isend);
     std::clog << "count " << cnt << '\n';
     // go to middle and flip the "next"
-
-    auto ismiddle([cnt, i=0] () mutable { return i++< cnt/2; });
-    auto [prev_middle, middle] = find_if(head, ismiddle);
+    auto [prev_middle, middle] = find_middle(head, cnt);
 
     std::clog << "middle phase: head " << middle->val << " prev " << prev_middle->val << '\n';
 
