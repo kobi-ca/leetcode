@@ -87,21 +87,9 @@ public:
     if (!head) return true;
     const auto isend([](auto iter){ return iter != nullptr; });
     auto cnt = count_until(head, 0, isend);
-    std::clog << "count " << cnt << '\n';
-    // go to middle and flip the "next"
     auto [prev_middle, middle] = find_middle(head, cnt);
-
-    std::clog << "middle phase: head " << middle->val << " prev " << prev_middle->val << '\n';
-
     auto [prev_end, end_flipped] = flip(middle, prev_middle);
-
-    // flip
-    std::clog << "middle " << end_flipped->val << " next " <<
-                end_flipped->next->val << " prev " << prev_end->val << '\n';
-
-    // go from 2 directions
     bool success = equal(head, end_flipped);
-
     flip_back(prev_end, middle, end_flipped);
     end_flipped->next = nullptr;
     return success;
